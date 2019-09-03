@@ -23,7 +23,7 @@ MacBook Pro (13-inch, 2017, Four Thunderbolt 3 Ports)\
 * Move processing to GPU for additional speed
 * Enable command line arguments for variables
 * Add minimum and maximum password length options
-* 
+
 ## References
 SNMPv3 authentication process: https://vad3rblog.wordpress.com/2017/09/11/snmp/\
 Snmpkey calculation simplified from: https://github.com/TheMysteriousX/SNMPv3-Hash-Generator
