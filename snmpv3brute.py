@@ -257,7 +257,7 @@ def main():
             # Create and use multithreading pool for faster wordlist processing
             if args.wordlist and keepTrying:
                pool = Pool()
-               with open(args.wordlist, "r") as lines:
+               with open(args.wordlist, "r", encoding='latin-1') as lines:
                   results = pool.imap_unordered(check_password, lines, chunksize=1000)
                   pool.close()
                   for passwordFound in results:
