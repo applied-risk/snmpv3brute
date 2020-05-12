@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
 #########################################################################
 #                                                                       #
-# snmpeev3.py                                                           #
+# snmpv3brute.py                                                           #
 # by Scott Thomas                                                       #
 # for Applied Risk                                                      #
 #                                                                       #
@@ -176,7 +176,7 @@ def main():
 
    ### Argparse setup for CLI options
    # Argparse definitions
-   usage='snmpeev3.py - SNMPv3 Authentication Bruteforcer\n\nSNMPv3 authentication can be bruteforced to determine the cleartext password. This program can extract the required SNMP information from a packet capture file, or you can manually specify the required information using the "-m" option.\n\nTo use the -m option, get the data for the variables from a SNMPv3 packet in Wireshark. For msgAuthoritativeEngineID and msgAuthenticationParameters, right click on the packet field of the same name and select "Copy as Hex Stream". For msgWhole, right click on Simple Network Management Protocol, and select "Copy as Hex Stream".\n\nExample: snmpeev3.py -m 80001f888056417b0bd201d85d00000000 a34b57081ff0cef821e4da43 3081dc020103301002043cabfa64020205c0040103020103043f303d041180001f888056417b0bd201d85d00000000020101020200a20409736e6d705f75736572040ca34b57081ff0cef821e4da430408bec2e5f547aaa89c048183dfe158807f83a660d37264c7f397a8a42c237988ee829c52b003f6d772df683c51acb56bb327a36ee590e1d65c9466e9d18a48e80539e5fff12006d2fba6bc61756956285b84bafe773b6359d2273db3b6e49f89a6609a86ac5f440d4bfa55b17af5a81db1fa0030402bba9befad240addc41d9b394d0fb2c4a3f5ffde3730485cdaf6'
+   usage='snmpv3brute.py - SNMPv3 Authentication Bruteforcer\n\nSNMPv3 authentication can be bruteforced to determine the cleartext password. This program can extract the required SNMP information from a packet capture file, or you can manually specify the required information using the "-m" option.\n\nTo use the -m option, get the data for the variables from a SNMPv3 packet in Wireshark. For msgAuthoritativeEngineID and msgAuthenticationParameters, right click on the packet field of the same name and select "Copy as Hex Stream". For msgWhole, right click on Simple Network Management Protocol, and select "Copy as Hex Stream".\n\nExample: snmpv3brute.py -m 80001f888056417b0bd201d85d00000000 a34b57081ff0cef821e4da43 3081dc020103301002043cabfa64020205c0040103020103043f303d041180001f888056417b0bd201d85d00000000020101020200a20409736e6d705f75736572040ca34b57081ff0cef821e4da430408bec2e5f547aaa89c048183dfe158807f83a660d37264c7f397a8a42c237988ee829c52b003f6d772df683c51acb56bb327a36ee590e1d65c9466e9d18a48e80539e5fff12006d2fba6bc61756956285b84bafe773b6359d2273db3b6e49f89a6609a86ac5f440d4bfa55b17af5a81db1fa0030402bba9befad240addc41d9b394d0fb2c4a3f5ffde3730485cdaf6'
    parser = argparse.ArgumentParser(description=usage,formatter_class=argparse.RawTextHelpFormatter)
    parser.add_argument("-a", help="Use md5, sha, or both for hashing algorithm (default: %(default)s)", nargs='?', choices=['md5','sha','all'], default='all',const='all',dest='hashType', type=str.lower)
    parser.add_argument("-w", help="Specify wordlist to use (1 word per line)",dest='wordlist')

@@ -10,11 +10,11 @@ This bruteforcer takes inspiration from other projects out there; but the goal o
 
 ```wrap
 $ python3 snmpv3brute.py -h
-usage: snmpeev3.py [-h] [-a [{md5,sha,all}]] [-w WORDLIST]
+usage: snmpv3brute.py [-h] [-a [{md5,sha,all}]] [-w WORDLIST]
                    [-W [SINGLEWORD [SINGLEWORD ...]]] [-p PCAPFILE]
                    [-m SNMP SNMP SNMP] [-v]
 
-snmpeev3.py - SNMPv3 Authentication Bruteforcer
+snmpv3brute.py - SNMPv3 Authentication Bruteforcer
 
 optional arguments:
   -h, --help            show this help message and exit
