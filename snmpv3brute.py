@@ -71,10 +71,11 @@ def validateArgparse(parser):
          
          
    # Create hashing algorithm to-do list
-   if args.hashType == 'all':
-      hashType = ['md5','sha']
-   else: 
-      hashType = [args.hashType]
+   hashType = args.hashType
+  # if args.hashType == 'all':
+  #    hashType = ['md5','sha']
+  # else: 
+  #    hashType = [args.hashType]
 
    # Create a list of supplied words to be checked
    if args.singleWord:
@@ -129,38 +130,50 @@ def check_password(passphrase):
    passphrase = passphrase.rstrip()
    if len(passphrase) < 1:
       return None
-
-   # Calculate AuthKey and AuthKeyExtended
+   
    reps = l // len(passphrase) + 1
    data = (''.join(list(repeat(passphrase, reps)))[:l]).encode('utf-8')
-   if typeHash == 'sha':
-      Ku = hashlib.sha1(data).digest()
-      AuthKey = hashlib.sha1(b''.join([Ku, E, Ku])).digest().hex()
-   else:
-      Ku = hashlib.md5(data).digest()
-      AuthKey = hashlib.md5(b''.join([Ku, E, Ku])).digest().hex()
-   AuthKeyExtended = AuthKey.ljust(128, '0')
-  
-   # Calculate testMsgAuthenticationParameters (hashK2)
-   K1 = '{0:0{1}x}'.format((int(AuthKeyExtended, 16) ^ ipad_int),128)            
-   K2 = '{0:0{1}x}'.format((int(AuthKeyExtended, 16) ^ opad_int),128)
-   if typeHash == 'sha':
-      hashK1 = hashlib.sha1(unhexlify(K1+msgWholeMod)).hexdigest()
-      hashK2 = hashlib.sha1(unhexlify(K2+hashK1)).hexdigest()
-   else:
-      hashK1 = hashlib.md5(unhexlify(K1+msgWholeMod)).hexdigest()
-      hashK2 = hashlib.md5(unhexlify(K2+hashK1)).hexdigest()
 
-   # Check if calculated value equals msgAuthenticationParameters
-   if hashK2[0:24] == msgAuthenticationParameters:
-      return(passphrase)
+   if hashType in {'md5', 'all'}:
+      # Calculate AuthKey and AuthKeyExtended
+      md5_Ku = hashlib.md5(data).digest()
+      md5_AuthKey = hashlib.md5(b''.join([md5_Ku, E, md5_Ku])).digest().hex()
+      md5_AuthKeyExtended = md5_AuthKey.ljust(128, '0')
+  
+      # Calculate testMsgAuthenticationParameters (hashK2)
+      md5_K1 = '{0:0{1}x}'.format((int(md5_AuthKeyExtended, 16) ^ ipad_int),128)            
+      md5_K2 = '{0:0{1}x}'.format((int(md5_AuthKeyExtended, 16) ^ opad_int),128)
+
+      md5_hashK1 = hashlib.md5(unhexlify(md5_K1+msgWholeMod)).hexdigest()
+      md5_hashK2 = hashlib.md5(unhexlify(md5_K2+md5_hashK1)).hexdigest()
+
+      # Check if calculated value equals msgAuthenticationParameters
+      if md5_hashK2[0:24] == msgAuthenticationParameters:
+         return([passphrase,"MD5"])   
+
+   if hashType in {'sha', 'all'}:
+      # Calculate AuthKey and AuthKeyExtended
+      sha_Ku = hashlib.sha1(data).digest()
+      sha_AuthKey = hashlib.sha1(b''.join([sha_Ku, E, sha_Ku])).digest().hex()
+      sha_AuthKeyExtended = sha_AuthKey.ljust(128, '0')
+   
+      # Calculate testMsgAuthenticationParameters (hashK2)
+      sha_K1 = '{0:0{1}x}'.format((int(sha_AuthKeyExtended, 16) ^ ipad_int),128)            
+      sha_K2 = '{0:0{1}x}'.format((int(sha_AuthKeyExtended, 16) ^ opad_int),128)
+      
+      sha_hashK1 = hashlib.sha1(unhexlify(sha_K1+msgWholeMod)).hexdigest()
+      sha_hashK2 = hashlib.sha1(unhexlify(sha_K2+sha_hashK1)).hexdigest()
+      
+      # Check if calculated value equals msgAuthenticationParameters
+      if sha_hashK2[0:24] == msgAuthenticationParameters:
+         return([passphrase,"SHA"])
+
 
 def main():
    ### Main function
    ### Declare global variables for use in other functions
    global msgAuthenticationParameters
    global msgWholeMod
-   global typeHash
    global args
    global E
    global ipad_int
@@ -230,46 +243,42 @@ def main():
 
       # Precalculation to avoid repetition in check_password()
       E = bytearray.fromhex(msgAuthoritativeEngineID)
-
+      
       startTime = time.time()
-
+      
+      print(" {} {} {} {} {} {} ".format(str(t[6]).zfill(2)," "*(int(lenID)-len(str(t[6]).zfill(2))+1),t[0]," "*(int(lenIP)-len(t[0])+1),t[2]," "*(int(lenUN)-len(t[2])+1)), end='') 
+      print((color.YELLOW+"{}   Trying..."+color.END).format(hashType.upper()), end='\r')
+            
       # Check single words first (either supplied with -W or added by multi-task processing)
-      for h in hashType:
-         typeHash = h
-         if (len(singleWord) > 0) and keepTrying:
-            for w in singleWord:
-               passwordFound = check_password(w)
-               if passwordFound:
-                  keepTrying = False
-                  endTime = time.time()
-                  print(" {} {} {} {} {} {} ".format(str(t[6]).zfill(2)," "*(int(lenID)-len(str(t[6]).zfill(2))+1),t[0]," "*(int(lenIP)-len(t[0])+1),t[2]," "*(int(lenUN)-len(t[2])+1)), end='') 
-                  print((color.GREEN+"{}   {}"+color.END+" ({:.2f}s)").format(h.upper(),str(passwordFound),endTime-startTime)) 
-                  break
+      if (len(singleWord) > 0) and keepTrying:
+         for w in singleWord:
+            passwordFound = check_password(w)
+            if passwordFound:
+               keepTrying = False
+               endTime = time.time()
+               # Print current task findings
+               print(" {} {} {} {} {} {} ".format(str(t[6]).zfill(2)," "*(int(lenID)-len(str(t[6]).zfill(2))+1),t[0]," "*(int(lenIP)-len(t[0])+1),t[2]," "*(int(lenUN)-len(t[2])+1)), end='') 
+               print((color.GREEN+"{}   {}"+color.END+" ({:.2f}s)").format(passwordFound[1],str(passwordFound[0]),endTime-startTime)) 
+               break
       
       # Check words in wordlist, if supplied   
-      for h in hashType:
-         typeHash = h
-         if keepTrying:
-            # Print current task details
-            print(" {} {} {} {} {} {} ".format(str(t[6]).zfill(2)," "*(int(lenID)-len(str(t[6]).zfill(2))+1),t[0]," "*(int(lenIP)-len(t[0])+1),t[2]," "*(int(lenUN)-len(t[2])+1)), end='') 
-            print((color.YELLOW+"{}   Trying..."+color.END).format(h.upper()), end='\r')
-            
-            # Create and use multithreading pool for faster wordlist processing
-            if args.wordlist and keepTrying:
-               pool = Pool()
-               with open(args.wordlist, "r", encoding='latin-1') as lines:
-                  results = pool.imap_unordered(check_password, lines, chunksize=1000)
-                  pool.close()
-                  for passwordFound in results:
-                     if passwordFound:
-                        singleWord.append(passwordFound)
-                        keepTrying = False
-                        endTime = time.time()
-                        pool.terminate()
-                        # Print current task findings
-                        print(" {} {} {} {} {} {} ".format(str(t[6]).zfill(2)," "*(int(lenID)-len(str(t[6]).zfill(2))+1),t[0]," "*(int(lenIP)-len(t[0])+1),t[2]," "*(int(lenUN)-len(t[2])+1)), end='') 
-                        print((color.GREEN+"{}   {}"+color.END+" ({:.2f}s)").format(h.upper(),str(passwordFound),endTime-startTime)) 
-                        break
+        
+      if args.wordlist and keepTrying:
+         # Create and use multithreading pool for faster wordlist processing
+         pool = Pool()
+         with open(args.wordlist, "r", encoding='latin-1') as lines:
+            results = pool.imap_unordered(check_password, lines, chunksize=1000)
+            pool.close()
+            for passwordFound in results:
+               if passwordFound:
+                  singleWord.append(passwordFound[0])
+                  keepTrying = False
+                  endTime = time.time()
+                  pool.terminate()
+                  # Print current task findings
+                  print(" {} {} {} {} {} {} ".format(str(t[6]).zfill(2)," "*(int(lenID)-len(str(t[6]).zfill(2))+1),t[0]," "*(int(lenIP)-len(t[0])+1),t[2]," "*(int(lenUN)-len(t[2])+1)), end='') 
+                  print((color.GREEN+"{}   {}"+color.END+" ({:.2f}s)").format(passwordFound[1],str(passwordFound[0]),endTime-startTime)) 
+                  break
 
       if not passwordFound:
          # Print current task not found
