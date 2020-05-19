@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
 #########################################################################
 #                                                                       #
-# snmpv3brute.py                                                           #
+# snmpv3brute.py                                                        #
 # by Scott Thomas                                                       #
 # for Applied Risk                                                      #
 #                                                                       #
@@ -72,10 +72,6 @@ def validateArgparse(parser):
          
    # Create hashing algorithm to-do list
    hashType = args.hashType
-  # if args.hashType == 'all':
-  #    hashType = ['md5','sha']
-  # else: 
-  #    hashType = [args.hashType]
 
    # Create a list of supplied words to be checked
    if args.singleWord:
@@ -126,48 +122,45 @@ def process_packets(pcap):
 
 def check_password(passphrase):
    ### Used to calculate hash for comparison against msgAuthenticationParameters
-   # Exit if passphrase is blank
    passphrase = passphrase.rstrip()
    if len(passphrase) < 1:
       return None
-   
-   reps = l // len(passphrase) + 1
-   data = (''.join(list(repeat(passphrase, reps)))[:l]).encode('utf-8')
 
-   if hashType in {'md5', 'all'}:
-      # Calculate AuthKey and AuthKeyExtended
-      md5_Ku = hashlib.md5(data).digest()
-      md5_AuthKey = hashlib.md5(b''.join([md5_Ku, E, md5_Ku])).digest().hex()
-      md5_AuthKeyExtended = md5_AuthKey.ljust(128, '0')
-  
-      # Calculate testMsgAuthenticationParameters (hashK2)
-      md5_K1 = '{0:0{1}x}'.format((int(md5_AuthKeyExtended, 16) ^ ipad_int),128)            
-      md5_K2 = '{0:0{1}x}'.format((int(md5_AuthKeyExtended, 16) ^ opad_int),128)
-
-      md5_hashK1 = hashlib.md5(unhexlify(md5_K1+msgWholeMod)).hexdigest()
-      md5_hashK2 = hashlib.md5(unhexlify(md5_K2+md5_hashK1)).hexdigest()
-
-      # Check if calculated value equals msgAuthenticationParameters
-      if md5_hashK2[0:24] == msgAuthenticationParameters:
-         return([passphrase,"MD5"])   
+   data = ((passphrase * (l//len(passphrase)+1))[:l]).encode('latin-1')
 
    if hashType in {'sha', 'all'}:
       # Calculate AuthKey and AuthKeyExtended
       sha_Ku = hashlib.sha1(data).digest()
-      sha_AuthKey = hashlib.sha1(b''.join([sha_Ku, E, sha_Ku])).digest().hex()
-      sha_AuthKeyExtended = sha_AuthKey.ljust(128, '0')
+      sha_AuthKey = hashlib.sha1(sha_Ku+E+sha_Ku).hexdigest()
+      sha_AuthKeyExtended = sha_AuthKey+'0'*88
    
       # Calculate testMsgAuthenticationParameters (hashK2)
-      sha_K1 = '{0:0{1}x}'.format((int(sha_AuthKeyExtended, 16) ^ ipad_int),128)            
-      sha_K2 = '{0:0{1}x}'.format((int(sha_AuthKeyExtended, 16) ^ opad_int),128)
+      sha_K1 = (int(sha_AuthKeyExtended, 16) ^ ipad_int).to_bytes(64,"big")
+      sha_K2 = (int(sha_AuthKeyExtended, 16) ^ opad_int).to_bytes(64,"big")
       
-      sha_hashK1 = hashlib.sha1(unhexlify(sha_K1+msgWholeMod)).hexdigest()
-      sha_hashK2 = hashlib.sha1(unhexlify(sha_K2+sha_hashK1)).hexdigest()
+      sha_hashK1 = hashlib.sha1(sha_K1+msgWholeMod).digest()
+      sha_hashK2 = hashlib.sha1(sha_K2+sha_hashK1).hexdigest()
       
       # Check if calculated value equals msgAuthenticationParameters
       if sha_hashK2[0:24] == msgAuthenticationParameters:
          return([passphrase,"SHA"])
 
+   if hashType in {'md5', 'all'}:
+      # Calculate AuthKey and AuthKeyExtended
+      md5_Ku = hashlib.md5(data).digest()
+      md5_AuthKey = hashlib.md5(md5_Ku+E+md5_Ku).hexdigest()
+      md5_AuthKeyExtended = md5_AuthKey+'0'*96
+  
+      # Calculate testMsgAuthenticationParameters (hashK2)
+      md5_K1 = (int(md5_AuthKeyExtended, 16) ^ ipad_int).to_bytes(64,"big")            
+      md5_K2 = (int(md5_AuthKeyExtended, 16) ^ opad_int).to_bytes(64,"big")
+
+      md5_hashK1 = hashlib.md5(md5_K1+msgWholeMod).digest()
+      md5_hashK2 = hashlib.md5(md5_K2+md5_hashK1).hexdigest()
+
+      # Check if calculated value equals msgAuthenticationParameters
+      if md5_hashK2[0:24] == msgAuthenticationParameters:
+         return([passphrase,"MD5"])   
 
 def main():
    ### Main function
@@ -239,10 +232,10 @@ def main():
       msgAuthoritativeEngineID    = str(t[3])
       msgAuthenticationParameters = str(t[4])
       msgWhole                    = str(t[5])
-      msgWholeMod                 =  msgWhole.replace(msgAuthenticationParameters,'0'*24)
+      msgWholeMod                 = unhexlify(msgWhole.replace(msgAuthenticationParameters,'0'*24))
 
       # Precalculation to avoid repetition in check_password()
-      E = bytearray.fromhex(msgAuthoritativeEngineID)
+      E = unhexlify(msgAuthoritativeEngineID)
       
       startTime = time.time()
       
