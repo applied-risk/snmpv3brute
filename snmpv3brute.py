@@ -27,6 +27,7 @@ class color:
    GREEN  = '\033[92m'
    YELLOW = '\033[93m'
    RED    = '\033[91m'
+   BLUE   = '\033[94m'
    BOLD   = '\033[1m'
    END    = '\033[0m'
 
@@ -162,7 +163,21 @@ def check_password(passphrase):
       if md5_hashK2[0:24] == msgAuthenticationParameters:
          return([passphrase,"MD5"])   
 
+def printBanner():
+   print("                                ____  _                _       ")
+   print("                               |___ \\| |              | |      ")
+   print("  ___ _ __  _ __ ___  _ ____   ____) | |__  _ __ _   _| |_ ___ ")
+   print(" / __| '_ \\| '_ ` _ \\| '_ \\ \\ / /__ <| '_ \\| '__| | | | __/ _ \\")
+   print(" \__ \\ | | | | | | | | |_) \\ V /___) | |_) | |  | |_| | ||  __/")
+   print(" |___/_| |_|_| |_| |_| .__/ \\_/|____/|_.__/|_|   \\__,_|\\__\\___|")
+   print("                     | |        by "+color.BOLD+color.BLUE+"Scott Thomas"+color.END+"                ")
+   print("                     |_|           for "+color.BOLD+color.RED+"Applied Risk"+color.END+"            ")
+   print("                                                               ")
+
 def main():
+   ### GREETZ
+   printBanner()
+   
    ### Main function
    ### Declare global variables for use in other functions
    global msgAuthenticationParameters
