@@ -1,5 +1,7 @@
 # snmpv3brute.py
 
+Original blog post here: https://applied-risk.com/resources/brute-forcing-snmpv3-authentication
+
 This is a tool to obtain cleartext authentication passwords from SNMPv3 packets. 
 
 A single SNMPv3 packet contains all of the information needed to calculate and bruteforce guess passwords. 
