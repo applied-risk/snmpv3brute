@@ -1,7 +1,7 @@
 # snmpv3brute.py
-by Scott Thomas for Applied Risk
+**Author:** Scott Thomas for Applied Risk
 
-Original blog post here: https://applied-risk.com/resources/brute-forcing-snmpv3-authentication
+**Blog post here:** https://applied-risk.com/resources/brute-forcing-snmpv3-authentication
 
 This is a tool to obtain cleartext authentication passwords from SNMPv3 packets. 
 
