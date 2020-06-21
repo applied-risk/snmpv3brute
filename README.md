@@ -1,4 +1,5 @@
 # snmpv3brute.py
+by Scott Thomas for Applied Risk
 
 Original blog post here: https://applied-risk.com/resources/brute-forcing-snmpv3-authentication
 
