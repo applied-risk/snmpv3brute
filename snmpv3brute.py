@@ -130,16 +130,16 @@ def check_password(passphrase):
    data = ((passphrase * (l//len(passphrase)+1))[:l]).encode('latin-1')
 
    if hashType in {'sha', 'all'}:
-      # Calculate AuthKey and AuthKeyExtended
-      sha_Ku = hashlib.sha1(data).digest()
-      sha_AuthKey = hashlib.sha1(sha_Ku+E+sha_Ku).hexdigest()
-      sha_AuthKeyExtended = sha_AuthKey+'0'*88
+      # Calculate AuthKey and extendedAuthKey
+      sha_digest1 = hashlib.sha1(data).digest()
+      sha_AuthKey = hashlib.sha1(sha_digest1+E+sha_digest1).hexdigest()
+      sha_extendedAuthKey = sha_AuthKey+'0'*88
    
       # Calculate testMsgAuthenticationParameters (hashK2)
-      sha_K1 = (int(sha_AuthKeyExtended, 16) ^ ipad_int).to_bytes(64,"big")
-      sha_K2 = (int(sha_AuthKeyExtended, 16) ^ opad_int).to_bytes(64,"big")
+      sha_K1 = (int(sha_extendedAuthKey, 16) ^ ipad_int).to_bytes(64,"big")
+      sha_K2 = (int(sha_extendedAuthKey, 16) ^ opad_int).to_bytes(64,"big")
       
-      sha_hashK1 = hashlib.sha1(sha_K1+msgWholeMod).digest()
+      sha_hashK1 = hashlib.sha1(sha_K1+wholeMsgMod).digest()
       sha_hashK2 = hashlib.sha1(sha_K2+sha_hashK1).hexdigest()
       
       # Check if calculated value equals msgAuthenticationParameters
@@ -147,16 +147,16 @@ def check_password(passphrase):
          return([passphrase,"SHA"])
 
    if hashType in {'md5', 'all'}:
-      # Calculate AuthKey and AuthKeyExtended
-      md5_Ku = hashlib.md5(data).digest()
-      md5_AuthKey = hashlib.md5(md5_Ku+E+md5_Ku).hexdigest()
-      md5_AuthKeyExtended = md5_AuthKey+'0'*96
+      # Calculate AuthKey and extendedAuthKey
+      md5_digest1 = hashlib.md5(data).digest()
+      md5_AuthKey = hashlib.md5(md5_digest1+E+md5_digest1).hexdigest()
+      md5_extendedAuthKey = md5_AuthKey+'0'*96
   
       # Calculate testMsgAuthenticationParameters (hashK2)
-      md5_K1 = (int(md5_AuthKeyExtended, 16) ^ ipad_int).to_bytes(64,"big")            
-      md5_K2 = (int(md5_AuthKeyExtended, 16) ^ opad_int).to_bytes(64,"big")
+      md5_K1 = (int(md5_extendedAuthKey, 16) ^ ipad_int).to_bytes(64,"big")            
+      md5_K2 = (int(md5_extendedAuthKey, 16) ^ opad_int).to_bytes(64,"big")
 
-      md5_hashK1 = hashlib.md5(md5_K1+msgWholeMod).digest()
+      md5_hashK1 = hashlib.md5(md5_K1+wholeMsgMod).digest()
       md5_hashK2 = hashlib.md5(md5_K2+md5_hashK1).hexdigest()
 
       # Check if calculated value equals msgAuthenticationParameters
@@ -181,7 +181,7 @@ def main():
    ### Main function
    ### Declare global variables for use in other functions
    global msgAuthenticationParameters
-   global msgWholeMod
+   global wholeMsgMod
    global args
    global E
    global ipad_int
@@ -197,13 +197,13 @@ def main():
 
    ### Argparse setup for CLI options
    # Argparse definitions
-   usage='snmpv3brute.py - SNMPv3 Authentication Bruteforcer\n\nSNMPv3 authentication can be bruteforced to determine the cleartext password. This program can extract the required SNMP information from a packet capture file, or you can manually specify the required information using the "-m" option.\n\nTo use the -m option, get the data for the variables from a SNMPv3 packet in Wireshark. For msgAuthoritativeEngineID and msgAuthenticationParameters, right click on the packet field of the same name and select "Copy as Hex Stream". For msgWhole, right click on Simple Network Management Protocol, and select "Copy as Hex Stream".\n\nExample: snmpv3brute.py -m 80001f888056417b0bd201d85d00000000 a34b57081ff0cef821e4da43 3081dc020103301002043cabfa64020205c0040103020103043f303d041180001f888056417b0bd201d85d00000000020101020200a20409736e6d705f75736572040ca34b57081ff0cef821e4da430408bec2e5f547aaa89c048183dfe158807f83a660d37264c7f397a8a42c237988ee829c52b003f6d772df683c51acb56bb327a36ee590e1d65c9466e9d18a48e80539e5fff12006d2fba6bc61756956285b84bafe773b6359d2273db3b6e49f89a6609a86ac5f440d4bfa55b17af5a81db1fa0030402bba9befad240addc41d9b394d0fb2c4a3f5ffde3730485cdaf6'
+   usage='snmpv3brute.py - SNMPv3 Authentication Bruteforcer\n\nSNMPv3 authentication can be bruteforced to determine the cleartext password. This program can extract the required SNMP information from a packet capture file, or you can manually specify the required information using the "-m" option.\n\nTo use the -m option, get the data for the variables from a SNMPv3 packet in Wireshark. For msgAuthoritativeEngineID and msgAuthenticationParameters, right click on the packet field of the same name and select "Copy as Hex Stream". For wholeMsg, right click on Simple Network Management Protocol, and select "Copy as Hex Stream".\n\nExample: snmpv3brute.py -m 80001f888056417b0bd201d85d00000000 a34b57081ff0cef821e4da43 3081dc020103301002043cabfa64020205c0040103020103043f303d041180001f888056417b0bd201d85d00000000020101020200a20409736e6d705f75736572040ca34b57081ff0cef821e4da430408bec2e5f547aaa89c048183dfe158807f83a660d37264c7f397a8a42c237988ee829c52b003f6d772df683c51acb56bb327a36ee590e1d65c9466e9d18a48e80539e5fff12006d2fba6bc61756956285b84bafe773b6359d2273db3b6e49f89a6609a86ac5f440d4bfa55b17af5a81db1fa0030402bba9befad240addc41d9b394d0fb2c4a3f5ffde3730485cdaf6'
    parser = argparse.ArgumentParser(description=usage,formatter_class=argparse.RawTextHelpFormatter)
    parser.add_argument("-a", help="Use md5, sha, or both for hashing algorithm (default: %(default)s)", nargs='?', choices=['md5','sha','all'], default='all',const='all',dest='hashType', type=str.lower)
    parser.add_argument("-w", help="Specify wordlist to use (1 word per line)",dest='wordlist')
    parser.add_argument("-W", help="Specify words to use as password for testing",dest='singleWord',nargs='*',default=[])
    parser.add_argument("-p", help="Specify .pcap/.pcapng file with SNMP data", dest='pcapFile')
-   parser.add_argument("-m", help="Manually specify msgAuthoriativeEngineID, msgAuthenticationParameters, and msgWhole from Wireshark (in that order)", nargs=3, dest='snmp')
+   parser.add_argument("-m", help="Manually specify msgAuthoriativeEngineID, msgAuthenticationParameters, and wholeMsg from Wireshark (in that order)", nargs=3, dest='snmp')
    parser.add_argument("-v", help="Verbose; print error messages", dest='verbose', action='store_true')
    args = parser.parse_args()
 
@@ -246,8 +246,8 @@ def main():
       keepTrying = True
       msgAuthoritativeEngineID    = str(t[3])
       msgAuthenticationParameters = str(t[4])
-      msgWhole                    = str(t[5])
-      msgWholeMod                 = unhexlify(msgWhole.replace(msgAuthenticationParameters,'0'*24))
+      wholeMsg                    = str(t[5])
+      wholeMsgMod                 = unhexlify(wholeMsg.replace(msgAuthenticationParameters,'0'*24))
 
       # Precalculation to avoid repetition in check_password()
       E = unhexlify(msgAuthoritativeEngineID)
